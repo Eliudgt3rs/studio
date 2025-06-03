@@ -3,6 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -53,11 +56,14 @@ export function SignupForm() {
       router.push("/personalized-verses");
     } catch (error: any) {
       console.error("Signup error:", error);
-      const errorMessage = error.code === 'auth/email-already-in-use' 
-        ? "This email is already registered."
-        : "An error occurred during signup. Please try again.";
-      toast({ title: "Signup Failed", description: errorMessage, variant: "destructive" });
-    }
+      let errorMessage = "An unexpected error occurred.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "The email address is already in use by another account.";
+      } else if (error.code === 'FirebaseError' && error.message.includes('client is offline')) {
+        errorMessage = "Network error: Please check your internet connection and try again.";
+      }
+      toast({ title: "Signup Error", description: errorMessage, variant: "destructive" });
+    }    
   }
 
   return (
